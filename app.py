@@ -1,3 +1,5 @@
+pip install japanize-matplotlib
+
 import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
