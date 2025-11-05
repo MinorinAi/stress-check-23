@@ -1,6 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-import japanize_matplotlib
+import matplotlib.font_manager as fm
 from datetime import datetime
 import uuid
 from reportlab.lib.pagesizes import A4
@@ -10,10 +10,15 @@ from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 
-# ===== CIDフォント登録（日本語対応） =====
-pdfmetrics.registerFont(UnicodeCIDFont('HeiseiMin-W3'))   # 明朝体
-pdfmetrics.registerFont(UnicodeCIDFont('HeiseiKakuGo-W5'))  # ゴシック体
+# ===== 日本語フォント設定（matplotlib用） =====
+# IPAexゴシックがStreamlit Cloudでも安定
+plt.rcParams['font.family'] = 'IPAexGothic'
 
+# ===== CIDフォント登録（PDF用） =====
+pdfmetrics.registerFont(UnicodeCIDFont('HeiseiMin-W3'))
+pdfmetrics.registerFont(UnicodeCIDFont('HeiseiKakuGo-W5'))
+
+# ===== Streamlit UI =====
 st.title("ストレスチェック23項目（簡易版）")
 st.write("匿名で利用できます。各設問に回答すると、自動で合計点とストレスレベルを計算します。")
 
@@ -24,27 +29,12 @@ options_3 = ["非常に", "かなり", "多少", "全くない"]
 
 # ===== 設問リスト =====
 questions = [
-    "ひどく疲れた",
-    "へとへとだ",
-    "だるい",
-    "気がはりつめている",
-    "不安だ",
-    "落ち着かない",
-    "ゆううつだ",
-    "何をするのも面倒だ",
-    "気分が晴れない",
-    "食欲がない",
-    "よく眠れない",
-    "非常にたくさんの仕事をしなければならない",
-    "時間内に仕事が処理しきれない",
-    "一生懸命働かなければならない",
-    "自分のペースで仕事ができる",
-    "自分で仕事の順番・やり方を決めることができる",
-    "職場の仕事の方針に自分の意見を反映できる",
-    "次の人たちはどれくらい気軽に話ができますか？【上司】",
-    "次の人たちはどれくらい気軽に話ができますか？【同僚】",
-    "あなたが困った時、次の人たちはどれくらい頼りになりますか？【上司】",
-    "あなたが困った時、次の人たちはどれくらい頼りになりますか？【同僚】",
+    "ひどく疲れた","へとへとだ","だるい","気がはりつめている","不安だ","落ち着かない",
+    "ゆううつだ","何をするのも面倒だ","気分が晴れない","食欲がない","よく眠れない",
+    "非常にたくさんの仕事をしなければならない","時間内に仕事が処理しきれない","一生懸命働かなければならない",
+    "自分のペースで仕事ができる","自分で仕事の順番・やり方を決めることができる","職場の仕事の方針に自分の意見を反映できる",
+    "次の人たちはどれくらい気軽に話ができますか？【上司】","次の人たちはどれくらい気軽に話ができますか？【同僚】",
+    "あなたが困った時、次の人たちはどれくらい頼りになりますか？【上司】","あなたが困った時、次の人たちはどれくらい頼りになりますか？【同僚】",
     "あなたの個人的な問題を相談したら、次の人たちはどれくらい聞いてくれますか？【上司】",
     "あなたの個人的な問題を相談したら、次の人たちはどれくらい聞いてくれますか？【同僚】"
 ]
@@ -53,17 +43,13 @@ questions = [
 reverse_items = [12, 13, 14]
 
 # ===== 回答フォーム =====
-st.markdown("### 【設問1〜11】最近1ヶ月のあなたの状態についてうかがいます。")
-st.write("（1: ほとんどなかった, 2: ときどきあった, 3: しばしばあった, 4: ほとんどいつもあった）")
-
+st.markdown("### 【設問1〜11】最近1ヶ月のあなたの状態について")
 answers = {}
 for i in range(1, 12):
     ans = st.radio(f"{i}. {questions[i-1]}", options_1, index=0, horizontal=True)
     answers[i] = options_1.index(ans) + 1
 
-st.markdown("### 【設問12〜17】あなたの仕事についてうかがいます。")
-st.write("（1: そうだ, 2: まあそうだ, 3: ややちがう, 4: ちがう）")
-
+st.markdown("### 【設問12〜17】あなたの仕事について")
 for i in range(12, 18):
     ans = st.radio(f"{i}. {questions[i-1]}", options_2, index=0, horizontal=True)
     score = options_2.index(ans) + 1
@@ -71,9 +57,7 @@ for i in range(12, 18):
         score = 5 - score
     answers[i] = score
 
-st.markdown("### 【設問18〜23】あなたの周りの方々についてうかがいます。")
-st.write("（1: 非常に, 2: かなり, 3: 多少, 4: 全くない）")
-
+st.markdown("### 【設問18〜23】あなたの周りの方々について")
 for i in range(18, 24):
     ans = st.radio(f"{i}. {questions[i-1]}", options_3, index=0, horizontal=True)
     answers[i] = options_3.index(ans) + 1
@@ -102,25 +86,24 @@ else:
     else:
         level = "Ⅲ"
 
-if level == "Ⅰ":
-    comment = "ストレスは軽度です。仕事や生活への影響は少ない状態です。"
-elif level == "Ⅱ":
-    comment = "中程度のストレスがあります。疲労がありつつも仕事を続けられています。"
-else:
-    comment = "高ストレス状態です。健康や業務に支障をきたす恐れがあります。"
+comment = {
+    "Ⅰ": "ストレスは軽度です。仕事や生活への影響は少ない状態です。",
+    "Ⅱ": "中程度のストレスがあります。疲労がありつつも仕事を続けられています。",
+    "Ⅲ": "高ストレス状態です。健康や業務に支障をきたす恐れがあります。"
+}[level]
 
 # ===== グラフ作成 =====
 plt.figure(figsize=(4,3))
 plt.bar(["A（1〜11）", "B（12〜23）"], [A_total, B_total],
         color=["#66b3ff", "#99cc99"], edgecolor="black")
-plt.title(f"ストレスチェック結果（レベル {level}）", fontname="IPAexGothic")
-plt.ylabel("合計スコア", fontname="IPAexGothic")
+plt.title(f"ストレスチェック結果（レベル {level}）")
+plt.ylabel("合計スコア")
 plt.ylim(0, 50)
 plt.tight_layout()
 plt.savefig("stress_chart.png", dpi=150)
 plt.close()
 
-st.image("stress_chart.png", caption="スコア比較グラフ", use_container_width=False)
+st.image("stress_chart.png", caption="スコア比較グラフ")
 
 st.write(f"**A合計点（1〜11）:** {A_total}")
 st.write(f"**B合計点（12〜23）:** {B_total}")
@@ -158,7 +141,6 @@ def generate_pdf(A_total, B_total, level, comment):
     doc.build(elements)
     return "stress23_report.pdf"
 
-# ===== ボタン =====
 if st.button("PDFレポートを生成"):
     pdf_path = generate_pdf(A_total, B_total, level, comment)
     with open(pdf_path, "rb") as f:
