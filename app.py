@@ -2,6 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import matplotlib
+import japanize-matplotlib
 from datetime import datetime
 import uuid
 from reportlab.lib.pagesizes import A4
