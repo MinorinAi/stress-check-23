@@ -85,23 +85,28 @@ comment = {
     "Ⅲ": "高ストレス状態です。健康や業務に支障をきたす恐れがあります。"
 }[level]
 
+
 # ===== グラフ =====
+from matplotlib.font_manager import FontProperties
+
+# Noto Sans CJK JP を直接指定（Streamlit Cloud対応）
+font_path = "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"
+font_prop = FontProperties(fname=font_path)
+
 plt.figure(figsize=(5,4))
 plt.bar(["A（1〜11）", "B（12〜23）"], [A_total, B_total],
         color=["#66b3ff", "#99cc99"], edgecolor="black")
-plt.title(f"ストレスチェック結果（レベル {level}）", fontsize=13)
-plt.ylabel("合計スコア", fontsize=11)
+
+plt.title(f"ストレスチェック結果（レベル {level}）", fontproperties=font_prop, fontsize=13)
+plt.ylabel("合計スコア", fontproperties=font_prop, fontsize=11)
+plt.xticks(fontproperties=font_prop)
+plt.yticks(fontproperties=font_prop)
 plt.ylim(0, 50)
 plt.tight_layout()
 plt.savefig("stress_chart.png", dpi=150)
 plt.close()
 
 st.image("stress_chart.png", caption="スコア比較グラフ")
-
-st.write(f"**A合計点（1〜11）:** {A_total}")
-st.write(f"**B合計点（12〜23）:** {B_total}")
-st.write(f"**ストレスレベル:** {level}")
-st.info(comment)
 
 
 # ===== PDF生成 =====
