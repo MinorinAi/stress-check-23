@@ -10,6 +10,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+from matplotlib.font_manager import FontProperties
+import os
 
 # ====== フォント設定（Streamlit Cloudでも日本語対応） ======
 # Noto Sans CJK JP（Google標準フォント）をMatplotlibに適用
@@ -87,11 +89,20 @@ comment = {
 
 
 # ===== グラフ =====
-from matplotlib.font_manager import FontProperties
+# --- フォント探索（複数候補を順に確認） ---
+font_candidates = [
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",   # Ubuntu: NotoSans
+    "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf",        # Ubuntu: IPAフォント
+    "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",      # 一部環境
+    "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",          # macOSローカル実行用
+]
+font_path = next((p for p in font_candidates if os.path.exists(p)), None)
 
-# Noto Sans CJK JP を直接指定（Streamlit Cloud対応）
-font_path = "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"
-font_prop = FontProperties(fname=font_path)
+# フォントが見つからない場合はMatplotlibデフォルト
+if font_path:
+    font_prop = FontProperties(fname=font_path)
+else:
+    font_prop = FontProperties()  # fallback（日本語が化けるがエラーにはならない）
 
 plt.figure(figsize=(5,4))
 plt.bar(["A（1〜11）", "B（12〜23）"], [A_total, B_total],
