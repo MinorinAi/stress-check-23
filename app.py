@@ -91,20 +91,7 @@ comment = {
 
 
 # ===== グラフ =====
-# --- フォント探索（複数候補を順に確認） ---
-font_candidates = [
-    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",   # Ubuntu: NotoSans
-    "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf",        # Ubuntu: IPAフォント
-    "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",      # 一部環境
-    "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",          # macOSローカル実行用
-]
-font_path = next((p for p in font_candidates if os.path.exists(p)), None)
-
-# フォントが見つからない場合はMatplotlibデフォルト
-if font_path:
-    font_prop = FontProperties(fname=font_path)
-else:
-    font_prop = FontProperties()  # fallback（日本語が化けるがエラーにはならない）
+font_prop = FontProperties(fname="IPAexGothic.ttf")
 
 plt.figure(figsize=(5,4))
 plt.bar(["A（1〜11）", "B（12〜23）"], [A_total, B_total],
@@ -119,7 +106,6 @@ plt.tight_layout()
 plt.savefig("stress_chart.png", dpi=150)
 plt.close()
 
-st.image("stress_chart.png", caption="スコア比較グラフ")
 
 
 # ===== PDF生成 =====
