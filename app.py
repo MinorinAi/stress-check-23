@@ -91,7 +91,7 @@ comment = {
 
 
 # ===== グラフ =====
-font_prop = FontProperties(fname="IPAexGothic.ttf")
+font_prop = FontProperties(fname="ipaexg.ttf")
 
 plt.figure(figsize=(5,4))
 plt.bar(["A（1〜11）", "B（12〜23）"], [A_total, B_total],
