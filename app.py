@@ -21,6 +21,8 @@ if not any("Noto Sans CJK" in f.name for f in fm.fontManager.ttflist):
 else:
     matplotlib.rcParams["font.family"] = "Noto Sans CJK JP"
 matplotlib.rcParams["axes.unicode_minus"] = False  # マイナス符号の文字化け防止
+st.caption(f"使用フォント: {font_path or 'デフォルト（未検出）'}")
+
 
 # ====== PDF用フォント登録 ======
 pdfmetrics.registerFont(UnicodeCIDFont('HeiseiMin-W3'))
