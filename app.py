@@ -67,22 +67,25 @@ st.markdown("### 【設問1〜11】最近1ヶ月のあなたの状態につい�
 for i in range(1, 12):
     st.markdown(f"<b style='font-size:18px;'>〔{i}〕{questions[i-1]}</b>", unsafe_allow_html=True)
     ans = st.radio("", options_1, index=None, horizontal=True, key=f"q{i}")
-    answers[i] = options_1.index(ans) + 1
+    if ans is not None:
+        answers[i] = options_1.index(ans) + 1
 
 st.markdown("### 【設問12〜17】あなたの仕事について")
 for i in range(12, 18):
     st.markdown(f"<b style='font-size:18px;'>〔{i}〕{questions[i-1]}</b>", unsafe_allow_html=True)
     ans = st.radio("", options_2, index=None, horizontal=True, key=f"q{i}")
-    score = options_2.index(ans) + 1
-    if i in reverse_items:
-        score = 5 - score
-    answers[i] = score
+    if ans is not None:
+        score = options_2.index(ans) + 1
+        if i in reverse_items:
+            score = 5 - score
+        answers[i] = score
 
 st.markdown("### 【設問18〜23】あなたの周りの方々について")
 for i in range(18, 24):
     st.markdown(f"<b style='font-size:18px;'>〔{i}〕{questions[i-1]}</b>", unsafe_allow_html=True)
     ans = st.radio("", options_3, index=None, horizontal=True, key=f"q{i}")
-    answers[i] = options_3.index(ans) + 1
+    if ans is not None:
+        answers[i] = options_3.index(ans) + 1
 
 # ===== 回答チェック =====
 if len(answers) < 23:
