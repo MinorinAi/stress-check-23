@@ -13,7 +13,7 @@ from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from matplotlib.font_manager import FontProperties
 import os
 
-# ====== フォント設定（Streamlit Cloudでも日本語対応） ======
+# フォント設定（Streamlit Cloudでも日本語対応）
 # Noto Sans CJK JP（Google標準フォント）をMatplotlibに適用
 font_path = "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc"
 if not any("Noto Sans CJK" in f.name for f in fm.fontManager.ttflist):
@@ -23,11 +23,11 @@ else:
 matplotlib.rcParams["axes.unicode_minus"] = False  # マイナス符号の文字化け防止
 
 
-# ====== PDF用フォント登録 ======
+# PDF用フォント登録
 pdfmetrics.registerFont(UnicodeCIDFont('HeiseiMin-W3'))
 pdfmetrics.registerFont(UnicodeCIDFont('HeiseiKakuGo-W5'))
 
-# ===== Streamlit UI =====
+# Streamlit UI
 st.title("ストレスチェック23項目（簡易版）")
 st.markdown("""
 匿名で利用できます。各設問に回答すると、自動で合計点とストレスレベルを計算します。
@@ -43,7 +43,7 @@ st.markdown("""
 """)
 
 
-# ===== 質問群 =====
+# 質問群
 options_1 = ["ほとんどなかった", "ときどきあった", "しばしばあった", "ほとんどいつもあった"]
 options_2 = ["そうだ", "まあそうだ", "ややちがう", "ちがう"]
 options_3 = ["非常に", "かなり", "多少", "全くない"]
@@ -62,7 +62,7 @@ questions = [
 reverse_items = [12, 13, 14]
 answers = {}
 
-# ===== 質問表示 =====
+# 質問表示
 st.markdown("### 【設問1〜11】最近1ヶ月のあなたの状態について")
 for i in range(1, 12):
     st.markdown(f"<b style='font-size:18px;'>〔{i}〕{questions[i-1]}</b>", unsafe_allow_html=True)
@@ -87,7 +87,7 @@ for i in range(18, 24):
     if ans is not None:
         answers[i] = options_3.index(ans) + 1
 
-# ===== 回答チェック =====
+# 回答チェック
 if len(answers) < 23:
     st.error("未回答の設問があります。すべての設問に回答してください。")
     st.stop()
@@ -98,11 +98,11 @@ else:
     「PDFをダウンロード」ボタンが表示されたら、クリックして結果をダウンロードしてください。
     """)
 
-# ===== 集計 =====
+# 集計
 A_total = sum([answers[i] for i in range(1, 12)])
 B_total = sum([answers[i] for i in range(12, 24)])
 
-# ===== 判定 =====
+# 判定
 if B_total <= 38:
     level = "Ⅰ" if A_total <= 15 else "Ⅱ" if A_total <= 30 else "Ⅲ"
 else:
@@ -115,7 +115,7 @@ comment = {
 }[level]
 
 
-# ===== グラフ =====
+# グラフ
 font_prop = FontProperties(fname="ipaexg.ttf")
 
 plt.figure(figsize=(5,4))
@@ -133,7 +133,7 @@ plt.close()
 
 
 
-# ===== PDF生成 =====
+# PDF生成
 def generate_pdf(A_total, B_total, level, comment):
     styles = getSampleStyleSheet()
     style_title = ParagraphStyle("Title", parent=styles["Heading1"], fontName='HeiseiKakuGo-W5',
