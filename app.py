@@ -12,6 +12,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from matplotlib.font_manager import FontProperties
 import os
+from scoring import evaluate
 
 # フォント設定（Streamlit Cloudでも日本語対応）
 # Noto Sans CJK JP（Google標準フォント）をMatplotlibに適用
@@ -98,24 +99,15 @@ else:
     「PDFをダウンロード」ボタンが表示されたら、クリックして結果をダウンロードしてください。
     """)
 
-# 集計
-A_total = sum([answers[i] for i in range(1, 12)])
-B_total = sum([answers[i] for i in range(12, 24)])
-
-# 判定
-if B_total <= 38:
-    level = "Ⅰ" if A_total <= 15 else "Ⅱ" if A_total <= 30 else "Ⅲ"
-else:
-    level = "Ⅱ" if A_total <= 22 else "Ⅲ"
-
-comment = {
-    "Ⅰ": "ストレスは軽度です。仕事や生活への影響は少ない状態です。",
-    "Ⅱ": "中程度のストレスがあります。疲労がありつつも仕事を続けられています。",
-    "Ⅲ": "高ストレス状態です。健康や業務に支障をきたす恐れがあります。"
-}[level]
+# 集計・判定
+result = evaluate(answers)
+A_total = result.A_total
+B_total = result.B_total
+level = result.level
+comment = result.comment
 
 
-# グラフ
+# 棒グラフ作成
 font_prop = FontProperties(fname="ipaexg.ttf")
 
 plt.figure(figsize=(5,4))
