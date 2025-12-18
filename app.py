@@ -13,6 +13,8 @@ from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from matplotlib.font_manager import FontProperties
 import os
 from scoring import evaluate
+from io import BytesIO
+from reportlab.lib.utils import ImageReader
 
 # フォント設定（Streamlit Cloudでも日本語対応）
 # Noto Sans CJK JP（Google標準フォント）をMatplotlibに適用
@@ -120,24 +122,52 @@ plt.xticks(fontproperties=font_prop)
 plt.yticks(fontproperties=font_prop)
 plt.ylim(0, 50)
 plt.tight_layout()
-plt.savefig("stress_chart.png", dpi=150)
-plt.close()
+
+def make_chart_bytes(A_total: int, B_total: int, level: str) -> bytes:
+    font_prop = FontProperties(fname="ipaexg.ttf")
+
+    plt.figure(figsize=(5, 4))
+    plt.bar(["A（1〜11）", "B（12〜23）"], [A_total, B_total],
+            color=["#66b3ff", "#99cc99"], edgecolor="black")
+
+    plt.title(f"ストレスチェック結果（レベル {level}）", fontproperties=font_prop, fontsize=13)
+    plt.ylabel("合計スコア", fontproperties=font_prop, fontsize=11)
+    plt.xticks(fontproperties=font_prop)
+    plt.yticks(fontproperties=font_prop)
+    plt.ylim(0, 50)
+    plt.tight_layout()
+
+    buf = BytesIO()
+    plt.savefig(buf, format="png", dpi=150)
+    plt.close()
+    buf.seek(0)
+    return buf.getvalue()
 
 
 
 # PDF生成
-def generate_pdf(A_total, B_total, level, comment):
+def generate_pdf_bytes(A_total: int, B_total: int, level: str, comment: str, chart_png_bytes: bytes) -> bytes:
     styles = getSampleStyleSheet()
-    style_title = ParagraphStyle("Title", parent=styles["Heading1"], fontName='HeiseiKakuGo-W5',
-                                 alignment=1, fontSize=18, textColor=colors.darkblue)
-    style_normal = ParagraphStyle("Normal", parent=styles["Normal"], fontName='HeiseiMin-W3',
-                                  fontSize=11, leading=14)
-    style_sub = ParagraphStyle("Sub", parent=styles["Normal"], fontName='HeiseiKakuGo-W5',
-                               fontSize=12, textColor=colors.grey)
+    style_title = ParagraphStyle(
+        "Title", parent=styles["Heading1"], fontName="HeiseiKakuGo-W5",
+        alignment=1, fontSize=18, textColor=colors.darkblue
+    )
+    style_normal = ParagraphStyle(
+        "Normal", parent=styles["Normal"], fontName="HeiseiMin-W3",
+        fontSize=11, leading=14
+    )
+    style_sub = ParagraphStyle(
+        "Sub", parent=styles["Normal"], fontName="HeiseiKakuGo-W5",
+        fontSize=12, textColor=colors.grey
+    )
 
     report_id = str(uuid.uuid4())[:8]
     date_str = datetime.now().strftime("%Y年%m月%d日")
-    doc = SimpleDocTemplate("stress23_report.pdf", pagesize=A4)
+
+    pdf_buf = BytesIO()
+    doc = SimpleDocTemplate(pdf_buf, pagesize=A4)
+
+    chart_reader = ImageReader(BytesIO(chart_png_bytes))
 
     elements = [
         Paragraph("ストレスチェック23項目 結果レポート", style_title),
@@ -151,12 +181,20 @@ def generate_pdf(A_total, B_total, level, comment):
         Paragraph("【コメント】", style_sub),
         Paragraph(comment, style_normal),
         Spacer(1, 24),
-        Image("stress_chart.png", width=300, height=200)
+        Image(chart_reader, width=300, height=200)
     ]
+
     doc.build(elements)
-    return "stress23_report.pdf"
+    pdf_buf.seek(0)
+    return pdf_buf.getvalue()
 
 if st.button("PDFレポートを生成"):
-    pdf_path = generate_pdf(A_total, B_total, level, comment)
-    with open(pdf_path, "rb") as f:
-        st.download_button("PDFをダウンロード", f, file_name="stress23_report.pdf")
+    chart_bytes = make_chart_bytes(A_total, B_total, level)
+    pdf_bytes = generate_pdf_bytes(A_total, B_total, level, comment, chart_bytes)
+
+    st.download_button(
+        "PDFをダウンロード",
+        data=pdf_bytes,
+        file_name="stress23_report.pdf",
+        mime="application/pdf"
+    )
